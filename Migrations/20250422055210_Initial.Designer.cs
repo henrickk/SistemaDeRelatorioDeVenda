@@ -12,8 +12,8 @@ using SistemaDeRelatorioDeVenda.Data;
 namespace SistemaDeRelatorioDeVenda.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    [Migration("20250421031430_Inicial")]
-    partial class Inicial
+    [Migration("20250422055210_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,7 +33,7 @@ namespace SistemaDeRelatorioDeVenda.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("NomeCliente")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -104,10 +104,10 @@ namespace SistemaDeRelatorioDeVenda.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("NomeProduto")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Preco")
+                    b.Property<decimal>("PrecoProduto")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");

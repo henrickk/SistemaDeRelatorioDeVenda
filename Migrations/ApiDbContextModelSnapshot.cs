@@ -30,7 +30,7 @@ namespace SistemaDeRelatorioDeVenda.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("NomeCliente")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -101,10 +101,10 @@ namespace SistemaDeRelatorioDeVenda.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("NomeProduto")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Preco")
+                    b.Property<decimal>("PrecoProduto")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
