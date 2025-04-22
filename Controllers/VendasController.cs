@@ -7,7 +7,7 @@ using SistemaDeRelatorioDeVenda.Models;
 namespace SistemaDeRelatorioDeVenda.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/vendas")]
     public class VendasController : ControllerBase
     {
         private readonly ApiDbContext _context;
@@ -20,7 +20,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<VendaResponseDto>>> ConsultarVendas()
-        {   
+        {
             var vendas = await _context.Pedidos
                 .Include(p => p.Cliente)
                 .Include(p => p.Itens)
@@ -40,6 +40,35 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                 })
                 .ToListAsync();
             return Ok(vendas);
+        }
+
+        [HttpGet]
+        [Route("consultar-venda/{id:int}")]
+        public async Task<ActionResult<VendaResponseDto>> ConsultarVendaPorId(int id)
+        {
+            var venda = await _context.Pedidos
+                .Include(p => p.Cliente)
+                .Include(p => p.Itens)
+                    .ThenInclude(i => i.Produto)
+                .Where(p => p.Id == id)
+                .Select(p => new VendaResponseDto
+                {
+                    PedidoId = p.Id,
+                    NomeCliente = p.Cliente.NomeCliente,
+                    Data = p.DataPedido,
+                    Total = p.Total,
+                    Produtos = p.Itens.Select(i => new ProdutoVendaDto
+                    {
+                        NomeProduto = i.Produto.NomeProduto,
+                        Quantidade = i.Quantidade,
+                        PrecoUnitario = i.PrecoUnitario
+                    }).ToList()
+                }).FirstOrDefaultAsync();
+            if (venda == null)
+            {
+                return NotFound();
+            }
+            return Ok(venda);
+        }
     }
-}
 }
