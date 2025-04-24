@@ -70,5 +70,30 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             }
             return Ok(venda);
         }
+
+        [HttpPost]
+        [Route("registrar-venda")]
+        public async<ActionResult<VendaResponseDto>> RegistrarVenda(VendaResponseDto venda)
+        {
+            if (venda == null)
+            {
+                return BadRequest();
+            }
+
+            var pedido = new Pedido
+            {
+                DataPedido = DateTime.Now,
+                ClienteId = venda.PedidoId,
+                Itens = venda.Produtos.Select(p => new ItemPedido
+                {
+                    ProdutoId = p.ProdutoId,
+                    Quantidade = p.Quantidade,
+                    PrecoUnitario = p.PrecoUnitario
+                }).ToList()
+            };
+
+
+
+        }
     }
 }
