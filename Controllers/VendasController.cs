@@ -73,7 +73,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
 
         [HttpPost]
         [Route("registrar-venda")]
-        public async<ActionResult<VendaResponseDto>> RegistrarVenda(VendaResponseDto venda)
+        public async Task<ActionResult<VendaResponseDto>> RegistrarVenda(VendaResponseDto venda)
         {
             if (venda == null)
             {
@@ -86,13 +86,27 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                 ClienteId = venda.PedidoId,
                 Itens = venda.Produtos.Select(p => new ItemPedido
                 {
-                    ProdutoId = p.ProdutoId,
                     Quantidade = p.Quantidade,
                     PrecoUnitario = p.PrecoUnitario
                 }).ToList()
             };
 
-
+            _context.Pedidos.Add(pedido);
+            await _context.SaveChangesAsync();
+            var vendaResponse = new VendaResponseDto
+            {
+                PedidoId = pedido.Id,
+                NomeCliente = venda.NomeCliente,
+                Data = pedido.DataPedido,
+                Total = pedido.Total,
+                Produtos = pedido.Itens.Select(i => new ProdutoVendaDto
+                {
+                    NomeProduto = i.Produto.NomeProduto,
+                    Quantidade = i.Quantidade,
+                    PrecoUnitario = i.PrecoUnitario
+                }).ToList()
+            };
+            return CreatedAtAction(nameof(ConsultarVendaPorId), new { id = pedido.Id }, vendaResponse);
 
         }
     }
