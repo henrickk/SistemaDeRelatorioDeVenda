@@ -44,6 +44,8 @@ namespace SistemaDeRelatorioDeVenda.Controllers
 
         [HttpGet]
         [Route("consultar-venda/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<VendaResponseDto>> ConsultarVendaPorId(int id)
         {
             var venda = await _context.Pedidos
@@ -73,6 +75,8 @@ namespace SistemaDeRelatorioDeVenda.Controllers
 
         [HttpPost]
         [Route("registrar-venda")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<VendaResponseDto>> RegistrarVenda(VendaResponseDto venda)
         {
             if (venda == null)
@@ -107,7 +111,8 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                 }).ToList()
             };
             return CreatedAtAction(nameof(ConsultarVendaPorId), new { id = pedido.Id }, vendaResponse);
-
         }
+
+
     }
 }
