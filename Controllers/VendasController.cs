@@ -154,5 +154,21 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             };
             return Ok(vendaResponse);
         }
+
+        [HttpDelete]
+        [Route("deletar-venda/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeletarVenda(int id)
+        {
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null)
+            {
+                return NotFound();
+            }
+            _context.Pedidos.Remove(pedido);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }
