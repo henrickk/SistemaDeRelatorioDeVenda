@@ -87,7 +87,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             var pedido = new Pedido
             {
                 DataPedido = DateTime.Now,
-                ClienteId = venda.PedidoId,
+                ClienteId = venda.ClienteId,
                 Itens = venda.Produtos.Select(p => new ItemPedido
                 {
                     Quantidade = p.Quantidade,
@@ -113,6 +113,46 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             return CreatedAtAction(nameof(ConsultarVendaPorId), new { id = pedido.Id }, vendaResponse);
         }
 
-
+        [HttpPut]
+        [Route("atualizar-venda/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<VendaResponseDto>> AtualizarVenda(int id, VendaResponseDto venda)
+        {
+            if (venda == null || id != venda.PedidoId)
+            {
+                return BadRequest();
+            }
+            var pedido = await _context.Pedidos
+                .Include(p => p.Itens)
+                .FirstOrDefaultAsync(p => p.Id == id);
+            if (pedido == null)
+            {
+                return NotFound();
+            }
+            string? nomeCliente = pedido.Cliente.NomeCliente;
+            pedido.ClienteId = venda.PedidoId;
+            pedido.DataPedido = DateTime.Now;
+            pedido.Itens = venda.Produtos.Select(p => new ItemPedido
+            {
+                Quantidade = p.Quantidade,
+                PrecoUnitario = p.PrecoUnitario
+            }).ToList();
+            _context.Pedidos.Update(pedido);
+            await _context.SaveChangesAsync();
+            var vendaResponse = new VendaResponseDto
+            {
+                NomeCliente = venda.NomeCliente,
+                Data = pedido.DataPedido,
+                Total = pedido.Total,
+                Produtos = pedido.Itens.Select(i => new ProdutoVendaDto
+                {
+                    NomeProduto = i.Produto.NomeProduto,
+                    Quantidade = i.Quantidade,
+                    PrecoUnitario = i.PrecoUnitario
+                }).ToList()
+            };
+            return Ok(vendaResponse);
+        }
     }
 }
