@@ -28,5 +28,21 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             return Ok(clientes);
         }
 
+        [HttpDelete]
+        [Route("deletar-cliente/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> DeletarCliente(int id)
+        {
+            var cliente = await _context.Clientes.FindAsync(id);
+            if (cliente == null)
+            {
+                return NotFound("Cliente não encontrado.");
+            }
+            _context.Clientes.Remove(cliente);
+            await _context.SaveChangesAsync();
+            return Ok("Cliente deletado com sucesso.");
+        }
+
     }
 }
