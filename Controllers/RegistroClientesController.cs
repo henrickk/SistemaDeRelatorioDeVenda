@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaDeRelatorioDeVenda.Data;
+using SistemaDeRelatorioDeVenda.DTO;
 using SistemaDeRelatorioDeVenda.Models;
 
 namespace SistemaDeRelatorioDeVenda.Controllers
@@ -27,6 +28,34 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             }
             return Ok(clientes);
         }
+
+        [HttpPost]
+        [Route("cadastrar-cliente")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Cliente>> CadastrarCliente([FromBody] ClienteCreateDto clienteDto)
+        {
+            if (clienteDto == null || string.IsNullOrWhiteSpace(clienteDto.NomeCliente))
+            {
+                return BadRequest("Nome do cliente é obrigatório.");
+            }
+
+            var cliente = new Cliente { NomeCliente = clienteDto.NomeCliente };
+            _context.Clientes.Add(cliente);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(ConsultarClientes), new { id = cliente.Id }, cliente);
+        }
+        //public async Task<ActionResult<Cliente>> CadastrarCliente([FromBody] Cliente cliente)
+        //{
+        //    if (cliente == null)
+        //    {
+        //        return BadRequest("Dados do cliente inválidos.");
+        //    }
+        //    _context.Clientes.Add(cliente);
+        //    await _context.SaveChangesAsync();
+        //    return CreatedAtAction(nameof(ConsultarClientes), new { id = cliente.Id }, cliente);
+        //}
 
         [HttpDelete]
         [Route("deletar-cliente/{id:int}")]
