@@ -28,5 +28,16 @@ namespace SistemaDeRelatorioDeVenda.Controllers
 
         }
 
+        [HttpPost]
+        public async Task<ActionResult<Produto>> CadastrarProduto([FromBody] Produto produto)
+        {
+            if (produto == null)
+            {
+                return BadRequest("Produto inválido.");
+            }
+            _context.Produtos.Add(produto);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(BuscarProdutos), new { id = produto.Id }, produto);
+        }
     }
 }
