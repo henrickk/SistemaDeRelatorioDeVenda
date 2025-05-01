@@ -46,16 +46,6 @@ namespace SistemaDeRelatorioDeVenda.Controllers
 
             return CreatedAtAction(nameof(ConsultarClientes), new { id = cliente.Id }, cliente);
         }
-        //public async Task<ActionResult<Cliente>> CadastrarCliente([FromBody] Cliente cliente)
-        //{
-        //    if (cliente == null)
-        //    {
-        //        return BadRequest("Dados do cliente inválidos.");
-        //    }
-        //    _context.Clientes.Add(cliente);
-        //    await _context.SaveChangesAsync();
-        //    return CreatedAtAction(nameof(ConsultarClientes), new { id = cliente.Id }, cliente);
-        //}
 
         [HttpDelete]
         [Route("deletar-cliente/{id:int}")]
