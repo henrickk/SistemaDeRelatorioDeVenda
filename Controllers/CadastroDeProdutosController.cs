@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaDeRelatorioDeVenda.Data;
+using SistemaDeRelatorioDeVenda.DTO;
 using SistemaDeRelatorioDeVenda.Models;
 
 namespace SistemaDeRelatorioDeVenda.Controllers
@@ -16,7 +17,9 @@ namespace SistemaDeRelatorioDeVenda.Controllers
         }
         
         [HttpGet]
-
+        [Route("consultar-produtos")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Produto>>> BuscarProdutos()
         {
             var produtos = await _context.Produtos.ToListAsync();
@@ -25,19 +28,28 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                 return NotFound("Nenhum produto encontrado.");
             }
             return Ok(produtos);
-
         }
 
         [HttpPost]
-        public async Task<ActionResult<Produto>> CadastrarProduto([FromBody] Produto produto)
+        [Route("cadastrar-produto")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ProdutoVendaDto>> CadastrarProduto()
         {
-            if (produto == null)
+            var produto = new Produto
             {
-                return BadRequest("Produto inválido.");
-            }
+                NomeProduto = "Produto Exemplo",
+                PrecoProduto = 10.00m
+            };
             _context.Produtos.Add(produto);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(BuscarProdutos), new { id = produto.Id }, produto);
+            var produtoDto = new ProdutoVendaDto
+            {
+                NomeProduto = produto.NomeProduto,
+                Quantidade = 1,
+                PrecoUnitario = produto.PrecoProduto
+            };
+            return CreatedAtAction(nameof(BuscarProdutos), new { id = produto.Id }, produtoDto);
         }
     }
 }
