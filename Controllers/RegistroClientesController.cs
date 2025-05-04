@@ -15,6 +15,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
         {
             _context = context;
         }
+
         [HttpGet]
         [Route("consultar-clientes")]
         [ProducesResponseType(StatusCodes.Status200OK)]

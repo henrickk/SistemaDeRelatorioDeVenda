@@ -7,7 +7,7 @@ using SistemaDeRelatorioDeVenda.Models;
 namespace SistemaDeRelatorioDeVenda.Controllers
 {
     [ApiController]
-    [Route("api/RegistroDeProdutos")]
+    [Route("api/CadastroDeProdutos")]
     public class CadastroDeProdutosController : ControllerBase
     {
         private readonly ApiDbContext _context;
@@ -15,7 +15,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
         {
             _context = context;
         }
-        
+
         [HttpGet]
         [Route("consultar-produtos")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -30,17 +30,28 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             return Ok(produtos);
         }
 
+        [HttpGet]
+        [Route("consultar-produto/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Produto>> BuscarProdutoPorId(int id)
+        {
+            var produto = await _context.Produtos.FindAsync(id);
+            if (produto == null)
+            {
+                return NotFound("Produto não encontrado.");
+            }
+            return Ok(produto);
+        }
+
         [HttpPost]
         [Route("cadastrar-produto")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ProdutoVendaDto>> CadastrarProduto()
         {
-            var produto = new Produto
-            {
-                NomeProduto = "Produto Exemplo",
-                PrecoProduto = 10.00m
-            };
+            var produto = new Produto();
+
             _context.Produtos.Add(produto);
             await _context.SaveChangesAsync();
             var produtoDto = new ProdutoVendaDto
@@ -50,6 +61,22 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                 PrecoUnitario = produto.PrecoProduto
             };
             return CreatedAtAction(nameof(BuscarProdutos), new { id = produto.Id }, produtoDto);
+        }
+
+        [HttpDelete]
+        [Route("deletar-produto/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> DeletarProduto(int id)
+        {
+            var produto = await _context.Produtos.FindAsync(id);
+            if (produto == null)
+            {
+                return NotFound("Produto não encontrado.");
+            }
+            _context.Produtos.Remove(produto);
+            await _context.SaveChangesAsync();
+            return Ok("Produto deletado com sucesso.");
         }
     }
 }
