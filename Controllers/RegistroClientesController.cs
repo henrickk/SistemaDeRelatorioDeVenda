@@ -30,6 +30,21 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             return Ok(clientes);
         }
 
+        [HttpGet]
+        [Route("consultar-cliente/{nomeCliente:string}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Cliente>> ConsultarClientePorNome(string nomeCliente)
+        {
+            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.NomeCliente == nomeCliente);
+            if (cliente == null)
+            {
+                return NotFound("Cliente não encontrado.");
+            }
+            return Ok(cliente);
+        }
+
+
         [HttpPost]
         [Route("cadastrar-cliente")]
         [ProducesResponseType(StatusCodes.Status201Created)]
