@@ -31,7 +31,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
         }
 
         [HttpGet]
-        [Route("consultar-cliente/{nomeCliente:string}")]
+        [Route("consultar-cliente")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Cliente>> ConsultarClientePorNome(string nomeCliente)
