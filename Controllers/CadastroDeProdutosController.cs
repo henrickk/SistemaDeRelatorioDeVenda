@@ -48,20 +48,23 @@ namespace SistemaDeRelatorioDeVenda.Controllers
         [Route("cadastrar-produto")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ProdutoVendaDto>> CadastrarProduto()
+        public async Task<ActionResult<ProdutoVendaDto>> CadastrarProduto(ProdutoVendaDto produto)
         {
-            var produto = new Produto();
-
-            _context.Produtos.Add(produto);
-            await _context.SaveChangesAsync();
-            var produtoDto = new ProdutoVendaDto
+            if (produto == null || string.IsNullOrWhiteSpace(produto.NomeProduto))
+            {
+                return BadRequest("Nome do produto é obrigatório.");
+            }
+            var novoProduto = new Produto
             {
                 NomeProduto = produto.NomeProduto,
-                Quantidade = 1,
-                PrecoUnitario = produto.PrecoProduto
+                PrecoProduto = produto.PrecoUnitario,
+                QuantidadeEstoque = produto.QuantidadeEstoque
             };
-            return CreatedAtAction(nameof(BuscarProdutos), new { id = produto.Id }, produtoDto);
+            _context.Produtos.Add(novoProduto);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(BuscarProdutos), new { id = novoProduto.Id }, novoProduto);
         }
+
 
         [HttpDelete]
         [Route("deletar-produto/{id:int}")]
