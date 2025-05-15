@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaDeRelatorioDeVenda.Models;
 
+
 namespace SistemaDeRelatorioDeVenda.Data
 {
     public class ApiDbContext : IdentityDbContext
@@ -17,10 +18,6 @@ namespace SistemaDeRelatorioDeVenda.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Pedido>()
-                .HasMany(p => p.Itens)
-                .WithOne(i => i.Pedido)
-                .HasForeignKey(i => i.PedidoId);
             modelBuilder.Entity<ItemPedido>()
                 .HasOne(i => i.Produto)
                 .WithMany()

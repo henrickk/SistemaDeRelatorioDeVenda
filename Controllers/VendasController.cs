@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaDeRelatorioDeVenda.Data;
 using SistemaDeRelatorioDeVenda.DTO;
@@ -6,6 +7,7 @@ using SistemaDeRelatorioDeVenda.Models;
 
 namespace SistemaDeRelatorioDeVenda.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/vendas")]
     public class VendasController : ControllerBase
@@ -90,6 +92,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                 ClienteId = venda.ClienteId,
                 Itens = venda.Produtos.Select(p => new ItemPedido
                 {
+                    ProdutoId = p.ProdutoId,
                     Quantidade = p.Quantidade,
                     PrecoUnitario = p.PrecoUnitario
                 }).ToList()
@@ -135,6 +138,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             pedido.DataPedido = DateTime.Now;
             pedido.Itens = venda.Produtos.Select(p => new ItemPedido
             {
+                ProdutoId = p.ProdutoId,
                 Quantidade = p.Quantidade,
                 PrecoUnitario = p.PrecoUnitario
             }).ToList();

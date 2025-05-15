@@ -5,6 +5,4 @@ public class Produto
     public string? NomeProduto { get; set; }
     public decimal PrecoProduto { get; set; }
     public int QuantidadeEstoque { get; set; }
-
-    public List<ItemPedido>? ItensPedido { get; set; }
 }
