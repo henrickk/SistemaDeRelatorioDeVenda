@@ -30,11 +30,13 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                 .Select(p => new VendaResponseDto
                 {
                     PedidoId = p.Id,
+                    ClienteId = p.ClienteId,
                     NomeCliente = p.Cliente.NomeCliente,
                     Data = p.DataPedido,
                     Total = p.Total,
                     Produtos = p.Itens.Select(i => new ProdutoVendaDto
                     {
+                        ProdutoId = i.ProdutoId,
                         NomeProduto = i.Produto.NomeProduto,
                         Quantidade = i.Quantidade,
                         PrecoUnitario = i.PrecoUnitario
@@ -58,11 +60,13 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                 .Select(p => new VendaResponseDto
                 {
                     PedidoId = p.Id,
+                    ClienteId = p.ClienteId,
                     NomeCliente = p.Cliente.NomeCliente,
                     Data = p.DataPedido,
                     Total = p.Total,
                     Produtos = p.Itens.Select(i => new ProdutoVendaDto
                     {
+                        ProdutoId = i.ProdutoId,
                         NomeProduto = i.Produto.NomeProduto,
                         Quantidade = i.Quantidade,
                         PrecoUnitario = i.PrecoUnitario
@@ -86,31 +90,46 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                 return BadRequest();
             }
 
+            var itensPedido = new List<ItemPedido>();
+            foreach (var p in venda.Produtos)
+            {
+                var produto = await _context.Produtos.FindAsync(p.ProdutoId);
+                if (produto == null)
+                    return BadRequest($"Produto com ID {p.ProdutoId} não encontrado.");
+
+                itensPedido.Add(new ItemPedido
+                {
+                    ProdutoId = p.ProdutoId,
+                    Produto = produto,
+                    Quantidade = p.Quantidade,
+                    PrecoUnitario = p.PrecoUnitario
+                });
+            }
+
             var pedido = new Pedido
             {
                 DataPedido = DateTime.Now,
                 ClienteId = venda.ClienteId,
-                Itens = venda.Produtos.Select(p => new ItemPedido
-                {
-                    ProdutoId = p.ProdutoId,
-                    Quantidade = p.Quantidade,
-                    PrecoUnitario = p.PrecoUnitario
-                }).ToList()
+                Itens = itensPedido
             };
 
             _context.Pedidos.Add(pedido);
             await _context.SaveChangesAsync();
+
             var vendaResponse = new VendaResponseDto
             {
                 PedidoId = pedido.Id,
+                ClienteId = pedido.ClienteId,
                 NomeCliente = venda.NomeCliente,
                 Data = pedido.DataPedido,
                 Total = pedido.Total,
                 Produtos = pedido.Itens.Select(i => new ProdutoVendaDto
                 {
+                    ProdutoId = i.ProdutoId,
                     NomeProduto = i.Produto.NomeProduto,
-                    Quantidade = i.Quantidade,
-                    PrecoUnitario = i.PrecoUnitario
+                    QuantidadeEstoque = i.Produto.QuantidadeEstoque,
+                    PrecoUnitario = i.PrecoUnitario,
+                    Quantidade = i.Quantidade
                 }).ToList()
             };
             return CreatedAtAction(nameof(ConsultarVendaPorId), new { id = pedido.Id }, vendaResponse);
