@@ -79,6 +79,59 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             return Ok(venda);
         }
 
+        [HttpGet]
+        [Route("relatorio")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<VendaResponseDto>>> ConsultarRelatorioVendas(
+            [FromQuery] int? clienteId,
+            [FromQuery] int? produtoId,
+            [FromQuery] DateTime? dataInicial,
+            [FromQuery] DateTime? dataFinal)
+        {
+            var query = _context.Pedidos
+                .Include(p => p.Cliente)
+                .Include(p => p.Itens)
+                    .ThenInclude(i => i.Produto)
+                .AsQueryable();
+
+            if (clienteId.HasValue)
+                query = query.Where(p => p.ClienteId == clienteId);
+
+            if (dataInicial.HasValue)
+                query = query.Where(p => p.DataPedido >= dataInicial.Value);
+
+            if (dataFinal.HasValue)
+                query = query.Where(p => p.DataPedido <= dataFinal.Value);
+
+            if (produtoId.HasValue)
+                query = query.Where(p => p.Itens.Any(i => i.ProdutoId == produtoId));
+
+            var vendas = await query
+                .Select(p => new VendaResponseDto
+                {
+                    PedidoId = p.Id,
+                    ClienteId = p.ClienteId,
+                    NomeCliente = p.Cliente.NomeCliente,
+                    Data = p.DataPedido,
+                    Total = p.Total,
+                    Produtos = p.Itens.Select(i => new ProdutoVendaDto
+                    {
+                        ProdutoId = i.ProdutoId,
+                        NomeProduto = i.Produto.NomeProduto,
+                        Quantidade = i.Quantidade,
+                        PrecoUnitario = i.PrecoUnitario
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            if (!vendas.Any())
+                return NotFound("Nenhuma venda encontrada com os filtros informados.");
+
+            return Ok(vendas);
+
+        }
+
         [HttpPost]
         [Route("registrar-venda")]
         [ProducesResponseType(StatusCodes.Status201Created)]
