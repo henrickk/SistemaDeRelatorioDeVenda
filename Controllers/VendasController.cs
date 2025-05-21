@@ -150,12 +150,15 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                 if (produto == null)
                     return BadRequest($"Produto com ID {p.ProdutoId} não encontrado.");
 
+                if (!produto.SubtrairEstoque(p.Quantidade))
+                    return BadRequest($"Estoque insuficiente para o produto {produto.NomeProduto}.");
+
                 itensPedido.Add(new ItemPedido
                 {
                     ProdutoId = p.ProdutoId,
                     Produto = produto,
-                    Quantidade = p.Quantidade,
-                    PrecoUnitario = p.PrecoUnitario
+                    PrecoUnitario = produto.PrecoProduto,
+                    Quantidade = p.Quantidade
                 });
             }
 
@@ -181,7 +184,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
                     ProdutoId = i.ProdutoId,
                     NomeProduto = i.Produto.NomeProduto,
                     QuantidadeEstoque = i.Produto.QuantidadeEstoque,
-                    PrecoUnitario = i.PrecoUnitario,
+                    PrecoUnitario = i.Produto.PrecoProduto,
                     Quantidade = i.Quantidade
                 }).ToList()
             };
@@ -246,5 +249,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
     }
+
 }

@@ -22,6 +22,11 @@ namespace SistemaDeRelatorioDeVenda.Data
                 .HasOne(i => i.Produto)
                 .WithMany()
                 .HasForeignKey(i => i.ProdutoId);
+
+            modelBuilder.Entity<Pedido>()
+                .HasOne(p => p.Cliente)
+                .WithMany(c => c.Pedidos)
+                .HasForeignKey(p => p.ClienteId);
         }
     }
 }

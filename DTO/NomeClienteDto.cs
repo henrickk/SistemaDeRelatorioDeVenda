@@ -1,6 +1,6 @@
 ﻿namespace SistemaDeRelatorioDeVenda.DTO
 {
-    public class ClienteCreateDto
+    public class NomeClienteDto
     {
         public string? NomeCliente { get; set; }
     }

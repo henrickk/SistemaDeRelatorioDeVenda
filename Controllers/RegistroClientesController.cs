@@ -24,7 +24,21 @@ namespace SistemaDeRelatorioDeVenda.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<Cliente>>> ConsultarClientes()
         {
-            var clientes = await _context.Clientes.ToListAsync();
+            var clientes = await _context.Clientes
+                .Include(c => c.Pedidos)
+                    .ThenInclude(p => p.Itens)
+                .Select(c => new ClienteResponseDto
+                {
+                    Id = c.Id,
+                    NomeCliente = c.NomeCliente,
+                    PedidosCliente = c.Pedidos.Select(p => new PedidoResponseDto
+                    {
+                        PedidoId = p.Id,
+                        DataPedido = p.DataPedido,
+                        Total = p.Total
+                    }).ToList()
+                }).ToListAsync();
+
             if (clientes == null || !clientes.Any())
             {
                 return NotFound("Nenhum cliente encontrado.");
@@ -33,16 +47,32 @@ namespace SistemaDeRelatorioDeVenda.Controllers
         }
 
         [HttpGet]
-        [Route("consultar-cliente")]
+        [Route("consultar-cliente-por-nome")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Cliente>> ConsultarClientePorNome(string nomeCliente)
+        public async Task<ActionResult<ClienteResponseDto>> ConsultarClientePorNome(string nomeCliente)
         {
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.NomeCliente == nomeCliente);
+            var cliente = await _context.Clientes
+                .Include(c => c.Pedidos)
+                .Where(c => c.NomeCliente == nomeCliente)
+                .Select(c => new ClienteResponseDto
+                {
+                    Id = c.Id,
+                    NomeCliente = c.NomeCliente,
+                    PedidosCliente = c.Pedidos.Select(p => new PedidoResponseDto
+                    {
+                        PedidoId = p.Id,
+                        DataPedido = p.DataPedido,
+                        Total = p.Itens.Sum(i => i.Quantidade * i.PrecoUnitario)
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
             if (cliente == null)
             {
                 return NotFound("Cliente não encontrado.");
             }
+
             return Ok(cliente);
         }
 
@@ -51,7 +81,7 @@ namespace SistemaDeRelatorioDeVenda.Controllers
         [Route("cadastrar-cliente")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Cliente>> CadastrarCliente([FromBody] ClienteCreateDto clienteDto)
+        public async Task<ActionResult<Cliente>> CadastrarCliente(NomeClienteDto clienteDto)
         {
             if (clienteDto == null || string.IsNullOrWhiteSpace(clienteDto.NomeCliente))
             {

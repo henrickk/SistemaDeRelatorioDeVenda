@@ -1,4 +1,6 @@
-﻿namespace SistemaDeRelatorioDeVenda.DTO
+﻿using System.Text.Json.Serialization;
+
+namespace SistemaDeRelatorioDeVenda.DTO
 {
     public class VendaResponseDto
     {
