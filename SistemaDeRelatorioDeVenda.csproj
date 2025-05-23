@@ -7,7 +7,7 @@
 	  <IncludeOpenAPIAnalysers>true</IncludeOpenAPIAnalysers>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup>    <PackageReference Include="EPPlus" Version="5.8.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.15" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.15" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />

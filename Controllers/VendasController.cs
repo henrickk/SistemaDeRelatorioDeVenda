@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 using SistemaDeRelatorioDeVenda.Data;
 using SistemaDeRelatorioDeVenda.DTO;
 using SistemaDeRelatorioDeVenda.Models;
+using System.ComponentModel;
 
 namespace SistemaDeRelatorioDeVenda.Controllers
 {
@@ -248,6 +250,69 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             _context.Pedidos.Remove(pedido);
             await _context.SaveChangesAsync();
             return NoContent();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> ExportarRelatorioExcel(
+            [FromQuery] int? clienteId,
+            [FromQuery] int? produtoId,
+            [FromQuery] DateTime? dataInicial,
+            [FromQuery] DateTime? dataFinal)
+        {
+            OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+            var query = _context.Pedidos
+                .Include(p => p.Cliente)
+                .Include(p =>p.Itens)
+                    .ThenInclude(i => i.Produto)
+                .AsQueryable();
+
+            if (clienteId.HasValue)
+                query = query.Where(p => p.ClienteId == clienteId);
+            
+            if (produtoId.HasValue)
+                query = query.Where(p => p.Itens.Any(i => i.ProdutoId == produtoId));
+
+            if (dataInicial.HasValue)
+                query = query.Where(p => p.DataPedido >= dataInicial.Value);
+
+            if(dataFinal.HasValue)
+                query = query.Where(p => p.DataPedido <= dataFinal.Value);
+
+            var vendas = await query.ToListAsync();
+
+            if (!vendas.Any())
+                return NotFound("Nenhuma venda encontrada com os filtros informados.");
+
+            using var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("RelatorioVendas"); ;
+
+            worksheet.Cells[1, 1].Value = "Pedido ID";
+            worksheet.Cells[1, 2].Value = "Cliente";
+            worksheet.Cells[1, 3].Value = "Data";
+            worksheet.Cells[1, 4].Value = "Produto";
+            worksheet.Cells[1, 5].Value = "Quantidade"; 
+            worksheet.Cells[1, 6].Value = "Preço Unitário";   
+            worksheet.Cells[1, 7].Value = "Total";
+
+            int linha = 2;
+
+            foreach(var venda in vendas)
+            {
+                foreach(var item in venda.Itens)
+                {
+                    worksheet.Cells[linha, 1].Value = venda.Id;
+                    worksheet.Cells[linha, 2].Value = venda.Cliente.NomeCliente;
+                    worksheet.Cells[linha, 3].Value = venda.DataPedido.ToString("dd/MM/yyyy");
+                    worksheet.Cells[linha, 4].Value = item.Produto.NomeProduto;
+                    worksheet.Cells[linha, 5].Value = item.Quantidade;
+                    worksheet.Cells[linha, 6].Value = item.PrecoUnitario;
+                    worksheet.Cells[linha, 7].Value = item.Quantidade * item.PrecoUnitario;
+                    linha++;
+                }
+            }
+
+            var excelBytes = package.GetAsByteArray();
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "RelatorioVendas.xlsx");
         }
 
     }
