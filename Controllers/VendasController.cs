@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace SistemaDeRelatorioDeVenda.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("api/vendas")]
     public class VendasController : ControllerBase
@@ -253,7 +253,9 @@ namespace SistemaDeRelatorioDeVenda.Controllers
         }
 
         [HttpGet]
+        [Route("exportar-relatorio-excel")]
         public async Task<ActionResult> ExportarRelatorioExcel(
+            [FromQuery] int? pedidoId,
             [FromQuery] int? clienteId,
             [FromQuery] int? produtoId,
             [FromQuery] DateTime? dataInicial,
@@ -262,9 +264,12 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
             var query = _context.Pedidos
                 .Include(p => p.Cliente)
-                .Include(p =>p.Itens)
+                .Include(p => p.Itens)
                     .ThenInclude(i => i.Produto)
                 .AsQueryable();
+
+            if (pedidoId.HasValue)
+                query = query.Where(p => p.Id == pedidoId);
 
             if (clienteId.HasValue)
                 query = query.Where(p => p.ClienteId == clienteId);

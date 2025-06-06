@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 using SistemaDeRelatorioDeVenda.Data;
 using SistemaDeRelatorioDeVenda.DTO;
 using SistemaDeRelatorioDeVenda.Models;
@@ -111,5 +112,61 @@ namespace SistemaDeRelatorioDeVenda.Controllers
             return Ok("Cliente deletado com sucesso.");
         }
 
+        [HttpGet]
+        [Route("exportar-relatorio-por-cliente-excel")]
+        public async Task<ActionResult> ExportarRelatorioPorClienteExcel(
+            [FromQuery] int? clienteId,
+            [FromQuery] DateTime? dataInicial,
+            [FromQuery] DateTime? dataFinal)
+        {
+            OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+            var query = _context.Clientes
+                .Include(c => c.Pedidos)
+                    .ThenInclude(i => i.Itens)
+                .AsQueryable();
+
+            if (clienteId.HasValue)
+                query = query.Where(c => c.Id == clienteId);
+
+
+            if (dataInicial.HasValue)
+                query = query.Where(c => c.Pedidos.Any(p => p.DataPedido >= dataInicial));
+
+            if (dataFinal.HasValue)
+                query = query.Where(c => c.Pedidos.Any(p => p.DataPedido <= dataFinal));
+
+            var pedidos = await query.ToListAsync();
+
+            if (!pedidos.Any())
+                return NotFound("Nenhum pedido encontrado com os filtros informados.");
+
+            using var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("RelatorioVendas");
+
+            worksheet.Cells[1, 1].Value = "Cliente ID";
+            worksheet.Cells[1, 2].Value = "Cliente";
+            worksheet.Cells[1, 3].Value = "Pedido ID";
+            worksheet.Cells[1, 4].Value = "Data";
+            worksheet.Cells[1, 5].Value = "Total";
+            
+            int linha = 2;
+
+            foreach (var pedido in pedidos)
+            {
+                foreach (var item in pedido.Pedidos)
+                {
+                    worksheet.Cells[linha, 1].Value = pedido.Id;
+                    worksheet.Cells[linha, 2].Value = pedido.NomeCliente;
+                    worksheet.Cells[linha, 3].Value = item.Id;
+                    worksheet.Cells[linha, 4].Value = item.DataPedido.ToString("dd/MM/yyyy");
+                    worksheet.Cells[linha, 5].Value = item.Total;
+                    linha++;
+                }
+            }
+
+            var excelBytes = package.GetAsByteArray();
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ExportarRelatorioPorClienteExcel.xlsx");
+
+        }
     }
 }
