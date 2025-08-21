@@ -254,6 +254,9 @@ namespace SistemaDeRelatorioDeVenda.Controllers
 
         [HttpGet]
         [Route("exportar-relatorio-excel")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Description("Exporta um relatório de vendas em formato Excel com base nos filtros informados.")]
         public async Task<ActionResult> ExportarRelatorioExcel(
             [FromQuery] int? pedidoId,
             [FromQuery] int? clienteId,
